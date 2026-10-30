@@ -58,6 +58,34 @@ def fmt(seconds: int) -> str:
     return f"{m:02d}:{s:02d}"
 
 
+# ── tmux status bar ────────────────────────────────────────────────────────────
+# The current phase is written (tmux-formatted) to STATUS_FILE for status-right.
+# It is rewritten at least once a second, so a stale mtime means pom isn't running.
+STATUS_FILE = os.path.expanduser("~/.cache/pom/status")
+_status_last = ("", 0.0)
+
+
+def write_status(text: str) -> None:
+    global _status_last
+    now = time.monotonic()
+    if text == _status_last[0] and now - _status_last[1] < 1.0:
+        return
+    try:
+        os.makedirs(os.path.dirname(STATUS_FILE), exist_ok=True)
+        with open(STATUS_FILE, "w") as f:
+            f.write(text)
+        _status_last = (text, now)
+    except OSError:
+        pass
+
+
+def clear_status() -> None:
+    try:
+        os.remove(STATUS_FILE)
+    except OSError:
+        pass
+
+
 def read_key(timeout: float = 0.25) -> Optional[str]:
     """Return one keypress (including escape sequences) within *timeout* seconds, or None."""
     if not HAS_RAW or not sys.stdin.isatty():
@@ -240,6 +268,8 @@ def countdown(
     Runs one timed phase.  Returns 'done' | 'skip' | 'quit'.
     """
     print(CLEAR, end="", flush=True)
+    status_color = "#f38ba8" if is_work else ("#89b4fa" if color == BLUE else "#a6e3a1")
+    status_word  = "work" if is_work else "break"
     start        = time.monotonic()
     pause_start: Optional[float] = None
     paused_total = 0.0
@@ -257,6 +287,8 @@ def countdown(
             render(label, color, elapsed, total_seconds,
                    paused=paused, stats=stats, menu=menu_open)
             last_state = state
+        icon = "⏸" if paused else "●"
+        write_status(f"#[fg={status_color}]{icon} {status_word} {fmt(remaining)}")
 
         if remaining == 0 and not paused:
             print(HOME, end="")
@@ -368,6 +400,7 @@ def main() -> None:
             time.sleep(0.8)
 
     finally:
+        clear_status()
         print(SHOW_CURSOR, end="", flush=True)
         show_stats(stats)
 

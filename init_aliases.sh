@@ -4,6 +4,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ALIASES=(
   "alias dev-claude='bash $SCRIPT_DIR/dev_claude.sh'"
   "alias dev-gemini='bash $SCRIPT_DIR/dev_gemini.sh'"
+  "alias dev-plain='bash $SCRIPT_DIR/dev_plain.sh'"
+  "alias dev-lite='bash $SCRIPT_DIR/dev_lite.sh'"
 )
 
 TARGET="${1:-$HOME/.bashrc}"

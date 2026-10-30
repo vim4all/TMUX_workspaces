@@ -8,40 +8,47 @@ Personal tmux environment bootstrap: session-launcher scripts and a self-contain
 
 ## Scripts
 
-| Script | AI assistant | Default session name |
-|--------|-------------|----------------------|
-| `dev_1.sh` | `claude` | `dev_session` |
-| `dev_claude.sh` | `claude` | `<folder-name>` |
-| `dev_gemini.sh` | `gemini` | `<folder-name>_gemini` |
+All scripts are symlinks to `dev.sh`; behaviour is inferred from the invoked filename.
+
+| Script | Layout | AI assistant | Default session name |
+|--------|--------|-------------|----------------------|
+| `dev.sh` / `dev_claude.sh` | full | `claude` | `<folder-name>` |
+| `dev_gemini.sh` | full | `agy` (Antigravity CLI; the Gemini CLI no longer signs in personal accounts) | `<folder-name>_gemini` |
+| `dev_plain.sh` | full | none | `<folder-name>_none` |
+| `dev_lite.sh` | lite | `claude` | `<folder-name>_lite` |
 
 ```bash
-bash dev_1.sh [DIR [SESSION]]        # dir defaults to cwd
-bash dev_claude.sh [DIR [SESSION]]
-bash dev_gemini.sh [DIR [SESSION]]
+bash dev_claude.sh [-c] [DIR [SESSION]] [-- AI_ARGS...]   # dir defaults to cwd
 ```
 
-If the named session already exists the script attaches (or `switch-client` when inside tmux) and exits. Both windows open in the resolved absolute path of `DIR`.
+`-c` appends `--continue` to the claude/agy command; args after `--` are shell-quoted and appended to the AI command. If the named session already exists (exact match) the script attaches (or `switch-client` when inside tmux) and exits, ignoring other options. All windows open in the resolved absolute path of `DIR`. Panes are targeted by pane ID, not index.
 
-## Layout (Window 1 — `code`)
+## Lite layout
+
+Window `claude`: AI CLI (~75%) above a shell (~25%). Window `git` (lazygit) only inside a git repo.
+
+## Full layout (Window 1 — `code`)
 
 ```
 ┌──────────────────┬───────────┐
-│                  │  AI CLI   │
-│   nvim (~65%)    │  (~35%)   │
-│                  ├───────────┤
-├──────────────────┤  pom.py   │
-│  terminal (~30%) │  (~25%)   │
+│                  │           │
+│   nvim (~65%)    │  AI CLI   │
+│                  │  (~35%)   │
+├──────────────────┤           │
+│  terminal (~30%) │           │
 └──────────────────┴───────────┘
 ```
 
-Pane numbering: 1 = nvim, 2 = top-right (AI), 3 = bottom-left (shell), 4 = bottom-right (pom).  
+`dev_plain.sh` drops the AI pane (nvim above terminal).  
 nvim restores `Session.vim` if present in the project directory, otherwise opens `.`.
 
 **Window 2 — `repl`**: ipython (falls back to python3) + shell scratch, both in `DIR`.
 
+**Window 3 — `git`**: lazygit, only inside a git repo. **Window 4 — `openocd`**: only when `run_openocd.sh` exists in `DIR`.
+
 ## pom.py
 
-Standalone Python 3 Pomodoro timer — no dependencies beyond stdlib. Launched by the session scripts as `python3 '$SCRIPT_DIR/pom.py'`.
+Standalone Python 3 Pomodoro timer — no dependencies beyond stdlib. Not part of the dev layouts: `~/.tmux.conf` binds `prefix + P` to a popup attached to a global `pom` session. `countdown()` writes the phase as a tmux-formatted string to `~/.cache/pom/status` at least once a second (`write_status()`); `pom-status.sh` prints it for `status-right` only if the file is ≤5s old. `main()` removes the file on exit.
 
 **Start screen** (interactive config before the first session):
 - `↑`/`↓` or `k`/`j` — move between settings
