@@ -25,7 +25,7 @@ bash dev_claude.sh [-c] [DIR [SESSION]] [-- AI_ARGS...]   # dir defaults to cwd
 
 ## Lite layout
 
-Window `claude`: AI CLI (~75%) above a shell (~25%). Window `git` (lazygit) only inside a git repo.
+Window `claude`: AI CLI (~75%) above a shell (~25%). No git window — lazygit is a tmux popup on `Alt+g`. The session sets `detach-on-destroy on` (overriding the global `off`), so killing it returns to the launching shell instead of switching to another session.
 
 ## Full layout (Window 1 — `code`)
 

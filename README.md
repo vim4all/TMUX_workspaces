@@ -36,7 +36,7 @@ dev-lite   [-c] [DIR [SESSION]] [-- AI_ARGS]   # just Claude + a shell
 └──────────────────────────────┘
 ```
 
-Plus a `git` window (lazygit) when `DIR` is a git repo.
+No git window — open lazygit as a popup with `Alt+g`.
 
 ## Full layout
 

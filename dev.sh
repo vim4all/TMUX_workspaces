@@ -3,7 +3,7 @@
 #   dev_claude.sh  → full layout, claude
 #   dev_gemini.sh  → full layout, agy (Antigravity CLI — replaced the Gemini CLI)
 #   dev_plain.sh   → full layout, no AI pane
-#   dev_lite.sh    → lite layout: claude + shell (+ lazygit window in git repos)
+#   dev_lite.sh    → lite layout: claude + shell (lazygit: Alt+g popup)
 #   dev.sh         → full layout, claude (default)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NAME=$(basename "$0" .sh)   # dev_claude / dev_gemini / dev_plain / dev_lite / dev
@@ -114,18 +114,13 @@ if [ "$LAYOUT" = "lite" ]; then
   # │  shell              (~25%)   │
   # └──────────────────────────────┘
   tmux new-session -d -s "$SESSION" -n claude -x $COLS -y $ROWS -c "$DIR"
+  # Killing this session drops back to the launching shell, not another session
+  tmux set -t "$SESSION" detach-on-destroy on
   PANE_AI=$(tmux display-message -p -t "$SESSION:claude" '#{pane_id}')
   tmux split-window -v -t "$PANE_AI" -l $(( ROWS * 25 / 100 )) -c "$DIR"
   tmux send-keys -t "$PANE_AI" "$AI_LINE" C-m
   tmux select-pane -t "$PANE_AI"
-
-  # ── Window 2: git (only inside a git repo)
-  if [ "$IS_GIT" = 1 ]; then
-    tmux new-window -d -t "$SESSION" -n git -c "$DIR"
-    tmux send-keys -t "$SESSION:git" "lazygit 2>/dev/null || git status" C-m
-  fi
-
-  tmux select-window -t "$SESSION:claude"
+  # No git window: lazygit is a popup on Alt+g (see ~/.tmux.conf)
   attach
   exit 0
 fi
